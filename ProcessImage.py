@@ -7,53 +7,21 @@ import os
 import hashlib
 import unittest
 from clarifai.client import ClarifaiApi
+from PyDictionary import PyDictionary
 
-app = Flask(__name__)
+def process_image(urls):
+    tags = {}
+    dictionary = PyDictionary()
+    api = ClarifaiApi("KuQ2EWXhdosMQyktSI1tw6Z3be7c677oA11p1g9o","Kt84XYqK7nVnx3f05_B8pe2biv9bBlGZAHjFvEwF")
+    for u in urls:
+        response = api.tag_image_urls(u)
+        words = response['results'][0]['result']['tag']['classes']
+        words_new = []
+        for word in words:
+            words_new.append(word)
+            #words_new += dictionary.synonym(word) --> get synonyms (TODO)
+        tags[u] = words_new
 
-app.config.from_object("config")
+    print(tags,len(tags['http://i.imgur.com/qR41ox0.jpg']))
 
-
-@app.route("/")
-def api_root(output=None):
-    return render_template("index.html", output=output)
-
-
-
-
-@app.route("/process/",methods=["POST"])
-def process_image():
-    urls = request.values.get('urls') #list of urls for the images
-    api = ClarifaiApi() 
-    response = api.tag_image_urls(url) #add functionality to go through all urls and index
-    print(response)
-
-
-if False:
-    @app.route("/submit/", methods=["POST"])
-    def api_submit_question():
-        question_number = request.values.get('question_number')
-        number = 0 if(question_number == "1") else (1 if(question_number =="2") else 2)
-        code = request.values.get('file')
-        test_case_array = app.config['HR_TEST_CASES']
-        test_cases = test_case_array[number]
-        lang = request.values.get('lang')
-        print(code)
-        print(json.dumps(test_cases))
-        print(lang)
-        payload = {"source": code,
-                   "api_key": app.config["HR_KEY"],
-                   "lang": lang,
-                   "testcases": json.dumps(test_cases)}
-
-        try:
-            response = requests.post(app.config["HR_URL"], data=payload)
-            res_json = json.loads(response.text)
-            output = res_json["result"]["stdout"]
-        except Exception as e:
-            output = "Exception - check console"
-            print(e)
-
-        return dumps(output)
-
-if __name__ == "__main__":
-    app.run(debug=True)
+process_image(["http://i.imgur.com/qR41ox0.jpg"])
