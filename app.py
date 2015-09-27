@@ -23,7 +23,8 @@ def api_upload():
     upload = request.files['file']
 
     image_id = str(uuid.uuid4())
-    upload.save(os.path.join(os.getcwd(), "static/uploads/") + image_id)
+    upload.save(os.path.join(os.getcwd(), "static/uploads/") + image_id + 
+        upload.filename.split(".")[-1])
 
     url = ["http://45.55.45.85/static/uploads/" + image_id]
     tags = ProcessImage.process_image(url)
