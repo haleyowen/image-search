@@ -5,6 +5,9 @@ $(function(){
   $('#search').hide();
 
   $('#button').click(function() {
+
+    $('.loader-inner').show();
+    
     $.post('post_url', function(link, status){
       console.log(link);
 
@@ -18,10 +21,14 @@ $(function(){
           type : 'POST',
           success: function(data) {
             console.log(data);
+            $('.loader-inner').hide();
           }
         });
+
       });
+
     });
+
   });
 
   function addSearchTags(e){
