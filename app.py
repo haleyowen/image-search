@@ -16,12 +16,11 @@ def api_root():
 def api_upload():
     if request.method != 'POST':
         return "no"
-    print(request.files)
-    single_file = request.files['file']
-    single_file.save(os.path.join(os.path.dirname(__file__), 'uploads/'))
-    # file_size = os.path.getsize(os.path.join(updir, f.filename))
-    # return jsonify(name=f.filename, size=file_size)
-    return "123"
+
+    upload = request.files['file']
+    upload.save(os.path.join(os.getcwd(), "uploads/") + upload.filename)
+
+    return "300"
 
 if __name__ == "__main__":
     app.run(debug=True)
