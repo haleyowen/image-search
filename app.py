@@ -25,7 +25,7 @@ def api_upload():
     image_id = str(uuid.uuid4())
     upload.save(os.path.join(os.getcwd(), "static/uploads/") + image_id)
 
-    url = ["http://localhost:5000/static/uploads/" + image_id]
+    url = ["http://45.55.45.85/static/uploads/" + image_id]
     tags = ProcessImage.process_image(url)
 
     doc = {
@@ -38,6 +38,19 @@ def api_upload():
              body=json.dumps(doc))
 
     return jsonify({"message": "success"})
+
+@app.route("/image/search", methods=["POST"])
+def api_search():
+  search_terms = request.POST['search-terms']
+  query = {
+      "query": {
+        "match": {
+          "tags": search_terms
+          }
+        }
+      }
+  results = es.search(index="image-search", body=json.dumps(query))
+  return results
 
 if __name__ == "__main__":
     application.run(debug=True)
