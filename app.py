@@ -34,6 +34,7 @@ def api_upload():
 
     file_path = os.path.join(os.getcwd(), "static/uploads/")+str(name)
 
+    print(full_name)
     upload.save(file_path)
 
     # tags = process_image(["http://45.55.45.85/static/uploads/"+name])
@@ -53,40 +54,47 @@ def api_upload():
 
 @application.route("/post_tags", methods=["POST"])
 def api_post_tags():
-    # query = {
-    #     "query": {
-    #         "match": {
-    #             "tags": search_terms
-    #         }
-    #     }
-    # }
 
     global full_name, current_image_id
 
     tags = request.json
 
-    print(tags)
+    tags_str = ""
+    for i in tags:
+        tags_str += str(i) + " "
 
     doc = {
         "image_name": current_image_id,
-        "tags_hits": tags
+        "tags": tags_str,
+        "path": full_name
     }
 
     es = Elasticsearch()
+    print(full_name)
     es.index(index="image-search", doc_type="image", id=current_image_id,
              body=doc)
+    return "200"
 
-    print('made it')
-    query_ids = {
-        "query": {
-            "match_all": {}
-        }
-    }
+@application.route("/search", methods=["POST"])
+def api_search():
 
-    results = es.search(index="image-search", body=query_ids)
+    es = Elasticsearch()
+    search_data = request.json
 
-    print(results)
-    return json.dumps(results)
+    search_data_str = ""
+
+    for i in search_data:
+        search_data_str += str(i) + " "
+
+    results = es.search(index="image-search", body={"query": {"match": {"tags": search_data_str}}})
+
+    result_list = []
+    print(results['hits']['hits'])
+    for i in results['hits']['hits']:
+        result_list += [str(i["_source"]["path"])]
+
+    print(result_list)
+    return json.dumps(result_list)
 
 
 def api_get_files():
