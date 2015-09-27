@@ -1,0 +1,5 @@
+*.pyc
+*.swp
+uploads/
+.ropeproject
+__pycache__/

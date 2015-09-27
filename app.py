@@ -7,15 +7,15 @@ import ProcessImage
 
 from elasticsearch import Elasticsearch
 
-app = Flask(__name__, static_folder="static")
+application = Flask(__name__, static_folder="static")
 
 
-@app.route("/")
+@application.route("/")
 def api_root():
     return render_template("test.html")
 
 
-@app.route("/upload_file", methods=["POST"])
+@application.route("/upload_file", methods=["POST"])
 def api_upload():
     if request.method != 'POST':
         return "no"
@@ -40,4 +40,4 @@ def api_upload():
     return jsonify({"message": "success"})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    application.run(debug=True)
