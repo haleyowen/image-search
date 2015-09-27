@@ -8,6 +8,7 @@ import ProcessImage
 from elasticsearch import Elasticsearch
 
 application = Flask(__name__, static_folder="static")
+application.config['DEBUG'] = True
 
 
 @application.route("/")
@@ -39,18 +40,20 @@ def api_upload():
 
     return jsonify({"message": "success"})
 
-@app.route("/image/search", methods=["POST"])
+
+@application.route("/image/search", methods=["POST"])
 def api_search():
-  search_terms = request.POST['search-terms']
-  query = {
-      "query": {
-        "match": {
-          "tags": search_terms
-          }
+    search_terms = request.POST['search-terms']
+    query = {
+        "query": {
+            "match": {
+                "tags": search_terms
+            }
         }
-      }
-  results = es.search(index="image-search", body=json.dumps(query))
-  return results
+    }
+    es = Elasticsearch()
+    results = es.search(index="image-search", body=json.dumps(query))
+    return results
 
 if __name__ == "__main__":
     application.run(debug=True)
