@@ -32,11 +32,11 @@ def api_upload():
     print(file_path)
     print(name)
 
-    tags = process_image(["http://45.55.45.85/static/uploads/"+name])
+    # tags = process_image(["http://45.55.45.85/static/uploads/"+name])
 
     doc = {
         "image_name": image_id,
-        "tags": tags
+        "tags": {}
     }
 
     es = Elasticsearch()
@@ -48,17 +48,28 @@ def api_upload():
 
 @application.route("/image/search", methods=["POST"])
 def api_search():
-    search_terms = request.POST['search-terms']
-    query = {
+    # search_terms = request.POST['search-terms']
+    # query = {
+    #     "query": {
+    #         "match": {
+    #             "tags": search_terms
+    #         }
+    #     }
+    # }
+    query_ids = {
         "query": {
-            "match": {
-                "tags": search_terms
-            }
-        }
+            "match_all": {}
+        },
+        "fields": ["_id"]
     }
     es = Elasticsearch()
-    results = es.search(index="image-search", body=json.dumps(query))
-    return results
+    results = es.search(index="image-search", body=json.dumps(query_ids))
+    print(results)
+    return json.dumps(results)
+
+
+def api_get_files():
+    return 0
 
 if __name__ == "__main__":
     application.run(debug=True)
