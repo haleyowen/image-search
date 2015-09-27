@@ -22,6 +22,7 @@ def process_image(urls):
             #words_new += dictionary.synonym(word) --> get synonyms (TODO)
         tags[u] = words_new
 
-    print(tags,len(tags['http://i.imgur.com/qR41ox0.jpg']))
+    return tags
 
-process_image(["http://i.imgur.com/qR41ox0.jpg"])
+#process_image(["http://i.imgur.com/qR41ox0.jpg","http://i.imgur.com/8EfBsJC.jpg"])
+
