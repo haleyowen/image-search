@@ -45,12 +45,11 @@ def api_upload():
 @application.route("/post_tags", methods=["POST"])
 def api_post_tags():
     if len(to_analyze) < 1:
-        return "200"
+        return json.dumps({"msg": "done"})
 
-    print(len(to_analyze), to_analyze)
-
-    web_path = to_analyze[-1][0]
-    image_id = to_analyze[-1][1]
+    last = to_analyze.pop()
+    web_path = last[0]
+    image_id = last[1]
 
     tags = request.json
 
@@ -66,7 +65,9 @@ def api_post_tags():
     es.index(index="image-search", doc_type="image", id=image_id,
              body=doc)
 
-    return "200"
+    if len(to_analyze) < 1:
+        return json.dumps({"msg": "done"})
+    return json.dumps({"msg": str(len(to_analyze))+" left"})
 
 
 @application.route("/search", methods=["POST"])
@@ -77,15 +78,32 @@ def api_search():
     search_data_str = " ".join(tags for tags in search_data)
 
     results = es.search(index="image-search",
-                        body={"query": {"match": {"tags": search_data_str}}})
+                        body={"size": 200, "query":
+                              {"match": {"tags": search_data_str}}})
 
     result_list = [str(v["_source"]["path"]) for v in results['hits']['hits']]
 
     return json.dumps(result_list)
 
 
+@application.route("/top_terms", methods=["GET"])
 def api_get_files():
-    return 0
+    es = Elasticsearch()
+    results = es.search(index="image-search",
+                        body={"size": 200})
+    freq = dict()
+
+    for v in results['hits']['hits']:
+        try:
+            for x in v["_source"]["tags"].split():
+                freq[x] = freq.get(x, 0) + 1
+        except Exception as e:
+            print(e)
+
+    top_ten = list(sorted(freq.values()))[-5:] + [10]
+    top_ten_tags = [tag for tag in freq if freq[tag] >= top_ten[0]]
+
+    return json.dumps(list(set(top_ten_tags)))
 
 
 @application.route("/post_url", methods=["POST"])
@@ -102,7 +120,7 @@ def api_post_url():
     if len(to_analyze) < 1:
         return "200"
 
-    full_name = to_analyze.pop()[0]
+    full_name = to_analyze[-1][0]
 
     return str('https://api.clarifai.com/v1/tag/?url=' +
                full_name+'&access_token='+access_token)
