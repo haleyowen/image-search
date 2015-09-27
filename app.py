@@ -15,6 +15,8 @@ name = -1
 full_name = "UNDEFINED"
 access_token = None
 
+to_analyze = []
+
 
 @application.route("/")
 def api_root():
@@ -23,77 +25,62 @@ def api_root():
 
 @application.route("/upload_file", methods=["POST"])
 def api_upload():
-    global name, full_name
     if request.method != 'POST':
         return "no"
 
     upload = request.files['file']
     image_id = str(uuid.uuid4())
     name = image_id+"."+upload.filename.split(".")[-1]
-    full_name = "http://45.55.45.85/static/uploads/"+str(name)
 
+    web_path = "http://45.55.45.85/static/uploads/"+str(name)
     file_path = os.path.join(os.getcwd(), "static/uploads/")+str(name)
 
-    print(full_name)
+    to_analyze.append((web_path, image_id))
+
     upload.save(file_path)
-
-    # tags = process_image(["http://45.55.45.85/static/uploads/"+name])
-
-    # doc = {
-    #     "image_name": image_id,
-    # }
-    global current_image_id
-    current_image_id = image_id
-
-    # es = Elasticsearch()
-    # es.index(index="image-search", doc_type="image", id=image_id,
-    #         body=json.dumps(doc))
 
     return jsonify({"message": "success"})
 
 
 @application.route("/post_tags", methods=["POST"])
 def api_post_tags():
+    if len(to_analyze) < 1:
+        return "200"
 
-    global full_name, current_image_id
+    print(len(to_analyze), to_analyze)
+
+    web_path = to_analyze[-1][0]
+    image_id = to_analyze[-1][1]
 
     tags = request.json
 
-    tags_str = ""
-    for i in tags:
-        tags_str += str(i) + " "
+    tags_str = " ".join(word for word in tags)
 
     doc = {
-        "image_name": current_image_id,
+        "image_name": image_id,
         "tags": tags_str,
-        "path": full_name
+        "path": web_path
     }
 
     es = Elasticsearch()
-    print(full_name)
-    es.index(index="image-search", doc_type="image", id=current_image_id,
+    es.index(index="image-search", doc_type="image", id=image_id,
              body=doc)
+
     return "200"
+
 
 @application.route("/search", methods=["POST"])
 def api_search():
-
     es = Elasticsearch()
+
     search_data = request.json
+    search_data_str = " ".join(tags for tags in search_data)
 
-    search_data_str = ""
+    results = es.search(index="image-search",
+                        body={"query": {"match": {"tags": search_data_str}}})
 
-    for i in search_data:
-        search_data_str += str(i) + " "
+    result_list = [str(v["_source"]["path"]) for v in results['hits']['hits']]
 
-    results = es.search(index="image-search", body={"query": {"match": {"tags": search_data_str}}})
-
-    result_list = []
-    print(results['hits']['hits'])
-    for i in results['hits']['hits']:
-        result_list += [str(i["_source"]["path"])]
-
-    print(result_list)
     return json.dumps(result_list)
 
 
@@ -103,7 +90,7 @@ def api_get_files():
 
 @application.route("/post_url", methods=["POST"])
 def api_post_url():
-    global access_token
+    global access_token, to_analyze
 
     if not access_token:
         r = requests.post("https://api.clarifai.com/v1/token/?grant_type=" +
@@ -112,16 +99,13 @@ def api_post_url():
                           "7nVnx3f05_B8pe2biv9bBlGZAHjFvEwF")
         access_token = r.json()['access_token']
 
+    if len(to_analyze) < 1:
+        return "200"
+
+    full_name = to_analyze.pop()[0]
+
     return str('https://api.clarifai.com/v1/tag/?url=' +
                full_name+'&access_token='+access_token)
-
-
-def extract_tags_dict(obj):
-    print(obj['results'][0]['result'])
-    data = obj['results'][0]['result']['tag']
-    tags = data['classes']
-    probs = data['probs']
-    return dict(zip(tags, probs))
 
 if __name__ == "__main__":
     application.run(debug=True)

@@ -24,6 +24,12 @@ body {
   position: absolute;
 }
 
+.pic {
+    height: 10%;
+    width: 10%;
+    padding: 10px;
+}
+
 #butts
 {
   height: 50%;
