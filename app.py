@@ -30,6 +30,7 @@ def api_upload():
     upload.save(file_path)
 
     print(file_path)
+    print(name)
 
     tags = process_image(["http://45.55.45.85/static/uploads/"+name])
 
