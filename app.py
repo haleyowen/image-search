@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, jsonify
 import json
 import os
 import uuid
-import ProcessImage
+from ProcessImage import process_image
 
 from elasticsearch import Elasticsearch
 
@@ -22,13 +22,16 @@ def api_upload():
         return "no"
 
     upload = request.files['file']
-
     image_id = str(uuid.uuid4())
-    upload.save(os.path.join(os.getcwd(), "static/uploads/") + image_id + 
-        upload.filename.split(".")[-1])
+    name = image_id+"."+upload.filename.split(".")[-1]
 
-    url = ["http://45.55.45.85/static/uploads/" + image_id]
-    tags = ProcessImage.process_image(url)
+    file_path = os.path.join(os.getcwd(), "static/uploads/")+name
+
+    upload.save(file_path)
+
+    print(file_path)
+
+    tags = process_image(["http://45.55.45.85/static/uploads/"+name])
 
     doc = {
         "image_name": image_id,
