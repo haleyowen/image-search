@@ -4,7 +4,7 @@ import requests
 import json
 import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static")
 
 
 @app.route("/")
@@ -18,9 +18,9 @@ def api_upload():
         return "no"
 
     upload = request.files['file']
-    upload.save(os.path.join(os.getcwd(), "uploads/") + upload.filename)
+    upload.save(os.path.join(os.getcwd(), "static/img/") + upload.filename)
 
-    return "300"
+    return jsonify({"message": "success"})
 
 if __name__ == "__main__":
     app.run(debug=True)
