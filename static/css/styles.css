@@ -1,18 +1,20 @@
+body {
+  background-color: #B8B6AD;
+}
+
 #upload-box {
     text-align: center;
     border-style: dotted;
     margin: 20px;
     padding: 50px;
-    width: 30%;
 }
 
 .uploads{
 	width:50%;
 }
 
-
-
 #butts
 {
+  height: 50%;
 	margin-top: 2px;
 }

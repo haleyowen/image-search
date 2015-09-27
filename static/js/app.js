@@ -1,5 +1,7 @@
 $(function(){
   var link = '';
+  var searchTags = [];
+
   $('#search').hide();
 
   $('#button').click(function() {
@@ -17,9 +19,28 @@ $(function(){
           success: function(data) {
             console.log(data);
           }
-        })
-      })
+        });
+      });
     });
   });
 
+  function addSearchTags(e){
+    e.preventDefault();
+
+    searchTags.push($('#search-box').val());
+    $('#search-box').val('');
+
+    console.log(searchTags);
+
+    $.ajax('search', {
+      data : JSON.stringify(searchTags),
+      contentType : 'application/json',
+      type : 'POST',
+      success: function(data) {
+        console.log(data);
+      }
+    });
+  }
+
+  $("#search-button").click(addSearchTags);
 });
